@@ -8,3 +8,11 @@ node_modules/**
 .node-version
 mise.toml
 package-lock.json
+out/**
+scripts/**
+src/**
+.vscode-test/**
+.vscode-test.mjs
+tsconfig.json
+.prettierignore
+.prettierrc.json

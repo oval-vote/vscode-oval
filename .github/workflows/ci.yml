@@ -6,10 +6,13 @@ on:
   pull_request:
 
 jobs:
-  grammar:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
       - run: npm ci
+      - run: npm run format:check
+      - run: npm run build
       - run: npm test
+      - run: xvfb-run -a npm run test:integration
