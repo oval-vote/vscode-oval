@@ -1,0 +1,259 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Oval",
+  "scopeName": "source.oval",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#markdown-field"
+    },
+    {
+      "include": "#url"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#identifier"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#unknown-word"
+    },
+    {
+      "include": "#tab"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.oval"
+    },
+    "markdown-field": {
+      "begin": "^([ ]*)(note|justification|description|if_yes|if_no)[ ]*(:)[ ]*(#.*)?$",
+      "beginCaptures": {
+        "2": {
+          "name": "support.type.property-name.oval"
+        },
+        "3": {
+          "name": "punctuation.separator.key-value.oval"
+        },
+        "4": {
+          "name": "comment.line.number-sign.oval"
+        }
+      },
+      "while": "^(?:[ ]*$|(?=\\1[ ]+\\S))",
+      "contentName": "markup.other.markdown.oval",
+      "patterns": [
+        {
+          "include": "#markdown"
+        }
+      ]
+    },
+    "markdown": {
+      "patterns": [
+        {
+          "match": "^[ ]*(#{1,6})[ ]+.*$",
+          "name": "markup.heading.oval",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.oval"
+            }
+          }
+        },
+        {
+          "match": "\\*\\*[^*\\n]+\\*\\*",
+          "name": "markup.bold.oval"
+        },
+        {
+          "match": "(?<![\\w*])\\*[^*\\n]+\\*(?![\\w*])",
+          "name": "markup.italic.oval"
+        },
+        {
+          "match": "(?<!\\w)_[^_\\n]+_(?!\\w)",
+          "name": "markup.italic.oval"
+        },
+        {
+          "match": "`[^`\\n]+`",
+          "name": "markup.inline.raw.oval"
+        },
+        {
+          "match": "(\\[)([^\\]\\n]+)(\\])(\\()([^)\\n]+)(\\))",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.link.oval"
+            },
+            "2": {
+              "name": "string.other.link.title.oval"
+            },
+            "3": {
+              "name": "punctuation.definition.link.oval"
+            },
+            "4": {
+              "name": "punctuation.definition.link.oval"
+            },
+            "5": {
+              "name": "markup.underline.link.oval"
+            },
+            "6": {
+              "name": "punctuation.definition.link.oval"
+            }
+          }
+        },
+        {
+          "match": "https?://[^ \\t\\r\\n]+",
+          "name": "markup.underline.link.oval"
+        }
+      ]
+    },
+    "url": {
+      "patterns": [
+        {
+          "match": "(?<![\\w-])https?://[^ \\t\\r\\n]+",
+          "name": "markup.underline.link.oval"
+        },
+        {
+          "match": "(?<![\\w-])https?://",
+          "name": "invalid.illegal.url.oval"
+        }
+      ]
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"|$",
+      "name": "string.quoted.double.oval",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.oval"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.oval"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\\\[\"\\\\]",
+          "name": "constant.character.escape.oval"
+        },
+        {
+          "match": "\\\\.",
+          "name": "invalid.illegal.escape.oval"
+        }
+      ]
+    },
+    "identifier": {
+      "patterns": [
+        {
+          "match": "(@)[A-Za-z][\\w-]*(?=[ ]+\")",
+          "name": "entity.name.type.declaration.oval",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.identifier.oval"
+            }
+          }
+        },
+        {
+          "match": "(@)[A-Za-z][\\w-]*(?![\\w-])",
+          "name": "variable.other.reference.oval",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.identifier.oval"
+            }
+          }
+        },
+        {
+          "match": "@[\\w-]*",
+          "name": "invalid.illegal.identifier.oval"
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "match": "(?<![\\w.-])\\d{4}-\\d{2}-\\d{2}(?![\\w.-])",
+          "name": "constant.numeric.date.oval"
+        },
+        {
+          "match": "(?<![\\w.-])(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?![\\w.-])",
+          "name": "constant.numeric.version.oval"
+        },
+        {
+          "match": "(?<![\\w.-])\\d+(?![\\w.-])",
+          "name": "constant.numeric.integer.oval"
+        },
+        {
+          "match": "(?<![\\w.-])\\d[\\w.-]*",
+          "name": "invalid.illegal.number.oval"
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "match": "(?<![\\w-])(?:oval)(?![\\w-])",
+          "name": "keyword.other.version.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:party|candidate|ballot|section|contest|campaign|measure)(?![\\w-])",
+          "name": "storage.type.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:guide|election|date|note|abbreviation|website|designation|eligibility|subtitle|tabulation|justification|description|if_yes|if_no|placement|fiscal_impact|supporters|opponents)(?![\\w-])",
+          "name": "support.type.property-name.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:single|multiple|ranked|retention|max)(?![\\w-])",
+          "name": "keyword.other.method.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:incumbent|withdrawn)(?![\\w-])",
+          "name": "storage.modifier.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:as)(?![\\w-])",
+          "name": "keyword.other.as.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:recommend|support|oppose)(?![\\w-])",
+          "name": "keyword.control.oval"
+        },
+        {
+          "match": "(?<![\\w-])(?:yes|no-position|no|none)(?![\\w-])",
+          "name": "constant.language.oval"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "match": ":",
+          "name": "punctuation.separator.key-value.oval"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.list.oval"
+        }
+      ]
+    },
+    "unknown-word": {
+      "match": "(?<![\\w@-])[A-Za-z_][\\w-]*",
+      "name": "invalid.illegal.unknown-word.oval"
+    },
+    "tab": {
+      "match": "\\t+",
+      "name": "invalid.illegal.tab.oval"
+    }
+  }
+}

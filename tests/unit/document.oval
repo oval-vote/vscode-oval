@@ -1,0 +1,40 @@
+# SYNTAX TEST "source.oval"
+
+oval 0.1 # trailing
+# <---- keyword.other.version.oval
+#    ^^^ constant.numeric.version.oval
+#        ^^^^^^^^^^ comment.line.number-sign.oval
+
+guide "Franklin Voter Guide"
+# <----- support.type.property-name.oval
+#     ^ punctuation.definition.string.begin.oval
+#      ^^^^^^^^^^^^^^^^^^^^ string.quoted.double.oval
+#                          ^ punctuation.definition.string.end.oval
+election "A \"quoted\" \n name"
+# <-------- support.type.property-name.oval
+#           ^^ constant.character.escape.oval
+#                      ^^ invalid.illegal.escape.oval
+date 2026-11-03
+# <---- support.type.property-name.oval
+#    ^^^^^^^^^^ constant.numeric.date.oval
+# a whole-line comment
+# <---------------------- comment.line.number-sign.oval
+party @dem "Democratic"
+# <----- storage.type.oval
+#     ^^^^ entity.name.type.declaration.oval
+#     ^ punctuation.definition.identifier.oval
+#           ^^^^^^^^^^ string.quoted.double.oval
+  abbreviation "D"
+# ^^^^^^^^^^^^ support.type.property-name.oval
+  website https://democrats.example/path?q=1#frag
+# ^^^^^^^ support.type.property-name.oval
+#         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.underline.link.oval
+candidate @jlee "Jordan Lee"
+# <--------- storage.type.oval
+#         ^^^^^ entity.name.type.declaration.oval
+  party @dem
+# ^^^^^ storage.type.oval
+#       ^^^^ variable.other.reference.oval
+#       ^^^^ - entity.name.type.declaration.oval
+  designation "Mayor of Franklin"
+# ^^^^^^^^^^^ support.type.property-name.oval

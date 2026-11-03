@@ -1,0 +1,64 @@
+# SYNTAX TEST "source.oval"
+
+note: # about this guide
+# <---- support.type.property-name.oval
+#   ^ punctuation.separator.key-value.oval
+#     ^^^^^^^^^^^^^^^^^^ comment.line.number-sign.oval
+  # A heading, not a comment
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.heading.oval
+# ^ - comment.line.number-sign.oval
+  Body with **bold**, *italic*, _also italic_, `code`, and [a link](https://example.com).
+# ^^^^ markup.other.markdown.oval
+# ^^^^ - invalid.illegal.unknown-word.oval
+#           ^^^^^^^^ markup.bold.oval
+#                     ^^^^^^^^ markup.italic.oval
+#                               ^^^^^^^^^^^^^ markup.italic.oval
+#                                              ^^^^^^ markup.inline.raw.oval
+#                                                           ^^^^^^ string.other.link.title.oval
+#                                                                   ^^^^^^^^^^^^^^^^^^^ markup.underline.link.oval
+
+  Second paragraph with a bare https://bare.example/#frag and the words guide and @dem.
+#                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.underline.link.oval
+#                                                                       ^^^^^ - support.type.property-name.oval
+#                                                                                 ^^^^ - variable.other.reference.oval
+ballot @b "B"
+# <------ storage.type.oval
+#      ^^ entity.name.type.declaration.oval
+  contest @c "C" single
+    campaign @x "X"
+      note:
+#     ^^^^ support.type.property-name.oval
+        Deep body.
+#       ^^^^ markup.other.markdown.oval
+    recommend
+#   ^^^^^^^^^ keyword.control.oval
+#   ^^^^^^^^^ - markup.other.markdown.oval
+      support @x
+#             ^^ variable.other.reference.oval
+      justification:
+#     ^^^^^^^^^^^^^ support.type.property-name.oval
+
+        Starts after a blank line.
+#       ^^^^^^ markup.other.markdown.oval
+
+        Continues after another.
+#       ^^^^^^^^^ markup.other.markdown.oval
+  measure @m "M"
+# ^^^^^^^ storage.type.oval
+# ^^^^^^^ - markup.other.markdown.oval
+    description:
+#   ^^^^^^^^^^^ support.type.property-name.oval
+      Printed on the ballot.
+#     ^^^^^^^ markup.other.markdown.oval
+    if_yes:
+#   ^^^^^^ support.type.property-name.oval
+#   ^^^^^^ - markup.other.markdown.oval
+      It passes.
+    if_no:
+#   ^^^^^ support.type.property-name.oval
+      It fails.
+    note: yes
+#   ^^^^ support.type.property-name.oval
+#         ^^^ constant.language.oval
+    recommend yes
+#             ^^^ constant.language.oval
