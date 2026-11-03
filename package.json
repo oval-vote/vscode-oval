@@ -2,7 +2,7 @@
   "name": "oval",
   "displayName": "Oval",
   "description": "Language support for Oval voting guides",
-  "version": "0.0.0",
+  "version": "0.1.1",
   "license": "MIT",
   "repository": "github:oval-vote/vscode-oval",
   "homepage": "https://oval.vote",
