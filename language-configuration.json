@@ -6,18 +6,10 @@
     {
       "open": "\"",
       "close": "\"",
-      "notIn": [
-        "string",
-        "comment"
-      ]
+      "notIn": ["string", "comment"]
     }
   ],
-  "surroundingPairs": [
-    [
-      "\"",
-      "\""
-    ]
-  ],
+  "surroundingPairs": [["\"", "\""]],
   "wordPattern": "@?[A-Za-z_][A-Za-z0-9_-]*",
   "indentationRules": {
     "increaseIndentPattern": "^[ ]*(?:(?:note|justification|description|if_yes|if_no)[ ]*:[ ]*(?:#.*)?|(?:ballot|section|contest)(?:[ ]+.*)?|recommend[ ]*(?:#.*)?)$",
