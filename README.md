@@ -62,6 +62,21 @@ check diagnostics and formatting end to end.
 To try the extension, open this folder in Visual Studio Code and press F5. The build runs first,
 then an Extension Development Host starts with the extension loaded; open any `.oval` file in it.
 
+## Releasing
+
+A release is a tag. Set `version` in `package.json` (`npm version <version> --no-git-tag-version`
+updates the lockfile too), commit, tag the commit `v<version>`, and push the tag. The release
+workflow runs the tests, checks that the tag matches the version, packages the extension, publishes
+it to the Visual Studio Marketplace, and attaches the `.vsix` to the GitHub release.
+
+Publishing uses the Marketplace's
+[trusted publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing),
+so no token is stored anywhere. The policy on the `oval-vote` publisher names this repository and
+the `release.yml` workflow, with no environment.
+
+`npm run package` builds a `.vsix` locally, which `code --install-extension` can install for a
+hands-on trial.
+
 ## Versioning
 
 The extension shares its version with the specification and the reference implementation. Its
