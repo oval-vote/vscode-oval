@@ -1,0 +1,13 @@
+node_modules/
+*.vsix
+
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+.DS_Store
+Thumbs.db

@@ -1,0 +1,10 @@
+.github/**
+.vscode/**
+tests/**
+node_modules/**
+.editorconfig
+.gitattributes
+.gitignore
+.node-version
+mise.toml
+package-lock.json

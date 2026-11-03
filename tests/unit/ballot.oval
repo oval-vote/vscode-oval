@@ -1,0 +1,73 @@
+# SYNTAX TEST "source.oval"
+
+ballot @franklin "State of Franklin"
+# <------ storage.type.oval
+#      ^^^^^^^^^ entity.name.type.declaration.oval
+  eligibility "Registered voters statewide"
+# ^^^^^^^^^^^ support.type.property-name.oval
+  section "Statewide Offices"
+# ^^^^^^^ storage.type.oval
+#          ^^^^^^^^^^^^^^^^^ string.quoted.double.oval
+    contest @gov "Governor" single
+#   ^^^^^^^ storage.type.oval
+#           ^^^^ entity.name.type.declaration.oval
+#                           ^^^^^^ keyword.other.method.oval
+      subtitle "Four-year term"
+#     ^^^^^^^^ support.type.property-name.oval
+      tabulation "Plurality"
+#     ^^^^^^^^^^ support.type.property-name.oval
+      campaign incumbent @jlee "Jordan Lee"
+#     ^^^^^^^^ storage.type.oval
+#              ^^^^^^^^^ storage.modifier.oval
+#                        ^^^^^ entity.name.type.declaration.oval
+        party @dem
+#             ^^^^ variable.other.reference.oval
+      campaign withdrawn @rkim "Riley Kim"
+#              ^^^^^^^^^ storage.modifier.oval
+      campaign
+#     ^^^^^^^^ storage.type.oval
+        @a "A" as "Governor"
+#       ^^ entity.name.type.declaration.oval
+#              ^^ keyword.other.as.oval
+#                  ^^^^^^^^ string.quoted.double.oval
+        @b "B" as "Lieutenant Governor"
+#       ^^ entity.name.type.declaration.oval
+      recommend
+#     ^^^^^^^^^ keyword.control.oval
+        support @jlee @a
+#       ^^^^^^^ keyword.control.oval
+#               ^^^^^ variable.other.reference.oval
+#                     ^^ variable.other.reference.oval
+        oppose @rkim
+#       ^^^^^^ keyword.control.oval
+#              ^^^^^ variable.other.reference.oval
+    contest @house "House" multiple 3
+#                          ^^^^^^^^ keyword.other.method.oval
+#                                   ^ constant.numeric.integer.oval
+    contest @mayor "Mayor" ranked max 5
+#                          ^^^^^^ keyword.other.method.oval
+#                                 ^^^ keyword.other.method.oval
+#                                     ^ constant.numeric.integer.oval
+    contest @judge "Judge" retention
+#                          ^^^^^^^^^ keyword.other.method.oval
+      recommend no-position
+#               ^^^^^^^^^^^ constant.language.oval
+  measure @prop1 "Proposition 1"
+# ^^^^^^^ storage.type.oval
+#         ^^^^^^ entity.name.type.declaration.oval
+    placement "Legislature"
+#   ^^^^^^^^^ support.type.property-name.oval
+    fiscal_impact "None"
+#   ^^^^^^^^^^^^^ support.type.property-name.oval
+#                  ^^^^ string.quoted.double.oval
+    supporters "Alliance", "Union"
+#   ^^^^^^^^^^ support.type.property-name.oval
+#                        ^ punctuation.separator.list.oval
+    opponents none
+#   ^^^^^^^^^ support.type.property-name.oval
+#             ^^^^ constant.language.oval
+    recommend yes
+#             ^^^ constant.language.oval
+  measure @prop2 "Proposition 2"
+    recommend no
+#             ^^ constant.language.oval

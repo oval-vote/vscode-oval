@@ -1,0 +1,46 @@
+{
+  "name": "oval",
+  "displayName": "Oval",
+  "description": "Language support for Oval voting guides",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "github:oval-vote/vscode-oval",
+  "homepage": "https://oval.vote",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "oval",
+        "aliases": [
+          "Oval",
+          "oval"
+        ],
+        "extensions": [
+          ".oval"
+        ],
+        "mimetypes": [
+          "text/prs.oval"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "oval",
+        "scopeName": "source.oval",
+        "path": "./syntaxes/oval.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "test": "vscode-tmgrammar-test \"tests/unit/*.oval\""
+  },
+  "devDependencies": {
+    "vscode-tmgrammar-test": "0.1.3"
+  }
+}
