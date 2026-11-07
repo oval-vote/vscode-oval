@@ -62,3 +62,11 @@ ballot @b "B"
 #         ^^^ constant.language.oval
     recommend yes
 #             ^^^ constant.language.oval
+nte:
+# <--- invalid.illegal.unexpected-word.oval
+#  ^ punctuation.separator.key-value.oval
+  A body under a misspelled field is still a body.
+# ^^^^^^ markup.other.markdown.oval
+# ^^^^^^ - invalid.illegal.unexpected-word.oval
+guide "G"
+# <----- support.type.property-name.oval

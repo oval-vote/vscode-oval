@@ -1,19 +1,20 @@
 import * as vscode from "vscode";
-import { check, format, type Diagnostic } from "@oval-vote/oval";
+import { catalog, check, format, type Diagnostic } from "@oval-vote/oval";
 import { byteOffsetToIndex } from "./offsets";
 
-const SPECIFICATION = "https://github.com/oval-vote/oval-spec/blob/main/SPEC.md";
+const SPECIFICATION = "https://spec.oval.vote/draft/";
 const DEBOUNCE_MILLISECONDS = 150;
 
 export function activate(context: vscode.ExtensionContext): void {
     const collection = vscode.languages.createDiagnosticCollection("oval");
     const pending = new Map<string, NodeJS.Timeout>();
+    const links = new Map(catalog().map((entry) => [entry.identifier, entry.url]));
 
     const lint = (document: vscode.TextDocument) => {
         if (document.languageId !== "oval") {
             return;
         }
-        collection.set(document.uri, diagnostics(document));
+        collection.set(document.uri, diagnostics(document, links));
     };
 
     const schedule = (document: vscode.TextDocument) => {
@@ -51,15 +52,19 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {}
 
-function diagnostics(document: vscode.TextDocument): vscode.Diagnostic[] {
+function diagnostics(
+    document: vscode.TextDocument,
+    links: Map<string, string>,
+): vscode.Diagnostic[] {
     const text = document.getText();
     const index = byteOffsetToIndex(text);
-    return check(text).map((found) => convert(document, index, found));
+    return check(text).map((found) => convert(document, index, links, found));
 }
 
 function convert(
     document: vscode.TextDocument,
     index: (byteOffset: number) => number,
+    links: Map<string, string>,
     found: Diagnostic,
 ): vscode.Diagnostic {
     const range = new vscode.Range(
@@ -74,11 +79,7 @@ function convert(
     diagnostic.source = "oval";
     diagnostic.code = {
         value: found.code,
-        target: vscode.Uri.parse(
-            found.code === "syntax"
-                ? `${SPECIFICATION}#2-language`
-                : `${SPECIFICATION}#3-validation`,
-        ),
+        target: vscode.Uri.parse(links.get(found.code) ?? SPECIFICATION),
     };
     return diagnostic;
 }

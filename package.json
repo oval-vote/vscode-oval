@@ -60,7 +60,7 @@
     "vscode:prepublish": "npm run build"
   },
   "dependencies": {
-    "@oval-vote/oval": "0.1.1"
+    "@oval-vote/oval": "0.1.2"
   },
   "devDependencies": {
     "@types/mocha": "10.0.10",

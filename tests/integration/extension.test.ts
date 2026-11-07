@@ -30,7 +30,7 @@ describe("the Oval extension", () => {
 
     it("maps diagnostics to editor positions through UTF-16", async () => {
         const document = await open(
-            'oval 0.1\nguide "G\u00fcide"\nelection "E"\ndate 2026-02-30\n',
+            'oval 1\nguide "G\u00fcide"\nelection "E"\ndate 2026-02-30\nballot @b "B"\n  measure @m "M"\n    recommend yes\n',
         );
         await until(() => vscode.languages.getDiagnostics(document.uri).length > 0);
         const diagnostics = vscode.languages.getDiagnostics(document.uri);
@@ -39,7 +39,7 @@ describe("the Oval extension", () => {
                 typeof d.code === "object" &&
                 d.code !== null &&
                 "value" in d.code &&
-                d.code.value === "V13",
+                d.code.value === "invalid-date",
         );
         assert.ok(date, JSON.stringify(diagnostics));
         assert.equal(date.severity, vscode.DiagnosticSeverity.Error);
@@ -51,12 +51,18 @@ describe("the Oval extension", () => {
                 date.range.end.line,
                 date.range.end.character,
             ],
-            [3, 0, 4, 0],
+            [3, 5, 3, 15],
+        );
+        assert.equal(
+            typeof date.code === "object" && date.code !== null && "target" in date.code
+                ? date.code.target.toString()
+                : undefined,
+            "https://spec.oval.vote/draft/#sec-Invalid-Date",
         );
     });
 
     it("re-lints after edits and clears fixed diagnostics", async () => {
-        const document = await open('oval 0.1\nguide "G"\n');
+        const document = await open('oval 1\nguide "G"\n');
         await until(() => vscode.languages.getDiagnostics(document.uri).length > 0);
         const editor = vscode.window.activeTextEditor;
         assert.ok(editor);
@@ -70,7 +76,7 @@ describe("the Oval extension", () => {
     });
 
     it("provides formatting edits", async () => {
-        const document = await open('oval    0.1\n\n\n\nguide   "G"');
+        const document = await open('oval    01\n\n\n\nguide   "G"');
         const edits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
             "vscode.executeFormatDocumentProvider",
             document.uri,
@@ -79,11 +85,11 @@ describe("the Oval extension", () => {
         const edit = new vscode.WorkspaceEdit();
         edit.set(document.uri, edits);
         assert.ok(await vscode.workspace.applyEdit(edit));
-        assert.equal(document.getText(), 'oval 0.1\n\nguide "G"\n');
+        assert.equal(document.getText(), 'oval 1\n\nguide "G"\n');
     });
 
     it("offers no edits for a document with syntax errors", async () => {
-        const document = await open("oval 0.1\nguide   yes\n");
+        const document = await open("oval 1\nguide   yes\n");
         const edits = await vscode.commands.executeCommand<vscode.TextEdit[] | undefined>(
             "vscode.executeFormatDocumentProvider",
             document.uri,

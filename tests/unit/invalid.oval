@@ -7,16 +7,24 @@ guide 12abc
 date 2026-11-5
 #    ^^^^^^^^^ invalid.illegal.number.oval
 candidate @9 "X"
-#         ^^ invalid.illegal.identifier.oval
+#         ^ punctuation.definition.identifier.oval
+#          ^ constant.numeric.integer.oval
+candidate @ "X"
+#         ^ punctuation.definition.identifier.oval
 bogus "x"
-# <----- invalid.illegal.unknown-word.oval
+# <----- invalid.illegal.unexpected-word.oval
 #      ^ string.quoted.double.oval
 website https://
 #       ^^^^^^^^ invalid.illegal.url.oval
 website ftp://files.example
-#       ^^^ invalid.illegal.unknown-word.oval
+#       ^^^ invalid.illegal.unexpected-word.oval
 Guide "capitalized"
-# <----- invalid.illegal.unknown-word.oval
+# <----- invalid.illegal.unexpected-word.oval
+-dash "x"
+# <- invalid.illegal.character.oval
+#^^^^ invalid.illegal.unexpected-word.oval
+guide "x" $
+#         ^ invalid.illegal.character.oval
 	note:
 # <- invalid.illegal.tab.oval
 election "unterminated

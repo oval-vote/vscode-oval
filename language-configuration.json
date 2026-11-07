@@ -10,9 +10,9 @@
     }
   ],
   "surroundingPairs": [["\"", "\""]],
-  "wordPattern": "@?[A-Za-z_][A-Za-z0-9_-]*",
+  "wordPattern": "@?[A-Za-z][A-Za-z0-9_-]*",
   "indentationRules": {
-    "increaseIndentPattern": "^[ ]*(?:(?:note|justification|description|if_yes|if_no)[ ]*:[ ]*(?:#.*)?|(?:ballot|section|contest)(?:[ ]+.*)?|recommend[ ]*(?:#.*)?)$",
+    "increaseIndentPattern": "^[ ]*(?:(?:ballot|section|contest|campaign|measure|party|candidate)(?:[ ]+.*)?|recommend[ ]*(?:#.*)?|(?:[^#\"]|\"(?:[^\"\\\\]|\\\\.)*\")*:[ ]*(?:#.*)?)$",
     "decreaseIndentPattern": "^(?!)"
   }
 }
