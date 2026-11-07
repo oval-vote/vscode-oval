@@ -5,8 +5,10 @@ Language support for [Oval](https://oval.vote), a plain-text format for voting g
 The extension provides, for `.oval` files:
 
 - **Syntax highlighting** from a TextMate grammar that follows the specification's lexical rules.
-- **Diagnostics** from the reference implementation: syntax errors and every validation rule
-  (V1 through V19), shown as you type. Each diagnostic's code links to the specification.
+- **Diagnostics** from the reference implementation: every lexical error, syntax error, validation
+  error, and warning the specification defines, shown as you type. Each diagnostic's code is the
+  identifier of its entry in the specification, and links to that entry on
+  [spec.oval.vote](https://spec.oval.vote).
 - **Formatting** through the reference formatter, so Format Document and format-on-save work.
   A document with syntax errors is left untouched.
 
@@ -20,7 +22,7 @@ The grammar follows the lexical rules of the [specification](https://github.com/
 
 | Construct                                                                                     | Scope                                                                                                                      |
 | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `oval` and its version                                                                        | `keyword.other.version.oval`, `constant.numeric.version.oval`                                                              |
+| `oval` and its major version                                                                  | `keyword.other.version.oval`, `constant.numeric.integer.oval`                                                              |
 | Entity keywords (`party`, `candidate`, `ballot`, `section`, `contest`, `campaign`, `measure`) | `storage.type.oval`                                                                                                        |
 | Field keywords (`guide`, `election`, `note`, `website`, ...)                                  | `support.type.property-name.oval`                                                                                          |
 | Voting methods (`single`, `multiple`, `ranked`, `retention`, `max`)                           | `keyword.other.method.oval`                                                                                                |
@@ -34,7 +36,7 @@ The grammar follows the lexical rules of the [specification](https://github.com/
 | URLs                                                                                          | `markup.underline.link.oval`                                                                                               |
 | Comments                                                                                      | `comment.line.number-sign.oval`                                                                                            |
 | Markdown bodies                                                                               | `markup.other.markdown.oval`, with `markup.heading`, `markup.bold`, `markup.italic`, `markup.inline.raw`, and links inside |
-| Words that are not keywords, malformed numbers, bad escapes, tabs                             | `invalid.illegal.*.oval`                                                                                                   |
+| Words where no keyword is expected, stray characters, malformed numbers, bad escapes, tabs    | `invalid.illegal.*.oval`                                                                                                   |
 
 Markdown bodies are not handed to the Markdown grammar. Bodies are indented, and the Markdown
 grammar would read every indented line as a code block, so the extension recognizes a small set of
@@ -79,5 +81,6 @@ hands-on trial.
 
 ## Versioning
 
-The extension shares its version with the specification and the reference implementation. Its
-major and minor components are the language version it understands.
+The extension has its own version. The language it understands is the major version that
+`@oval-vote/oval` reports through `languageMajor()`, and the diagnostics link to the edition of the
+specification that package was built against.

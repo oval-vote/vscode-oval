@@ -1,9 +1,9 @@
 # SYNTAX TEST "source.oval"
 
-oval 0.1 # trailing
+oval 1 # trailing
 # <---- keyword.other.version.oval
-#    ^^^ constant.numeric.version.oval
-#        ^^^^^^^^^^ comment.line.number-sign.oval
+#    ^ constant.numeric.integer.oval
+#      ^^^^^^^^^^ comment.line.number-sign.oval
 
 guide "Franklin Voter Guide"
 # <----- support.type.property-name.oval
@@ -38,3 +38,11 @@ candidate @jlee "Jordan Lee"
 #       ^^^^ - entity.name.type.declaration.oval
   designation "Mayor of Franklin"
 # ^^^^^^^^^^^ support.type.property-name.oval
+candidate @ spaced "Spaced"
+#         ^^^^^^^^ entity.name.type.declaration.oval
+#         ^ punctuation.definition.identifier.oval
+  party @ dem
+#       ^^^^^ variable.other.reference.oval
+candidate @ballot "Keyword as a name"
+#         ^^^^^^^ entity.name.type.declaration.oval
+#         ^^^^^^^ - storage.type.oval
