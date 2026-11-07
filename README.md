@@ -93,7 +93,7 @@ Publishing uses the Marketplace's
 [trusted publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing),
 so no token is stored anywhere. The policy on the `oval-vote` publisher names this repository and
 the `release.yml` workflow, with no environment. The release app's ID and private key are the
-`OVAL_RELEASE_APP_ID` and `OVAL_RELEASE_APP_PRIVATE_KEY` organization secrets; commits and tags
+`VSCODE_OVAL_RELEASE_APP_ID` and `VSCODE_OVAL_RELEASE_APP_PRIVATE_KEY` organization secrets; commits and tags
 made with its token trigger the CI and publish workflows, which the default `GITHUB_TOKEN` would
 not.
 
