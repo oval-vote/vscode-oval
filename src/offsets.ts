@@ -1,4 +1,9 @@
-export function byteOffsetToIndex(text: string): (byteOffset: number) => number {
+export interface Offsets {
+    toIndex(byteOffset: number): number;
+    toByteOffset(index: number): number;
+}
+
+export function offsets(text: string): Offsets {
     const starts = new Uint32Array(text.length + 1);
     let bytes = 0;
     for (let i = 0; i < text.length; i++) {
@@ -18,17 +23,26 @@ export function byteOffsetToIndex(text: string): (byteOffset: number) => number 
     }
     starts[text.length] = bytes;
 
-    return (byteOffset) => {
-        let low = 0;
-        let high = text.length;
-        while (low < high) {
-            const mid = (low + high) >>> 1;
-            if (starts[mid] < byteOffset) {
-                low = mid + 1;
-            } else {
-                high = mid;
+    return {
+        toIndex(byteOffset) {
+            let low = 0;
+            let high = text.length;
+            while (low < high) {
+                const mid = (low + high) >>> 1;
+                if (starts[mid] < byteOffset) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
             }
-        }
-        return low;
+            return low;
+        },
+        toByteOffset(index) {
+            return starts[Math.max(0, Math.min(index, text.length))];
+        },
     };
+}
+
+export function byteOffsetToIndex(text: string): (byteOffset: number) => number {
+    return offsets(text).toIndex;
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { byteOffsetToIndex } from "../../src/offsets";
+import { byteOffsetToIndex, offsets } from "../../src/offsets";
 
 test("ascii offsets are identities", () => {
     const index = byteOffsetToIndex('guide "G"\n');
@@ -30,4 +30,17 @@ test("offsets past the end clamp to the length", () => {
 
 test("an empty document maps zero to zero", () => {
     assert.equal(byteOffsetToIndex("")(0), 0);
+});
+
+test("indices map back to byte offsets", () => {
+    const text = 'guide "Güide" \u{1F5F3}\n';
+    const { toByteOffset, toIndex } = offsets(text);
+    assert.equal(toByteOffset(0), 0);
+    assert.equal(toByteOffset(8), 8);
+    assert.equal(toByteOffset(9), 10);
+    assert.equal(toByteOffset(text.length), Buffer.byteLength(text, "utf8"));
+    for (let i = 0; i <= text.length; i++) {
+        const byte = toByteOffset(i);
+        assert.equal(toIndex(byte), toIndex(toByteOffset(toIndex(byte))));
+    }
 });

@@ -11,8 +11,13 @@ The extension provides, for `.oval` files:
   [spec.oval.vote](https://spec.oval.vote).
 - **Formatting** through the reference formatter, so Format Document and format-on-save work.
   A document with syntax errors is left untouched.
+- **Outline** of the ballots, sections, contests, and measures, in the Outline view and
+  breadcrumbs.
+- **Go to Definition, Find All References, and Rename** for identifiers. A reference goes to its
+  declaration, references list every occurrence, and a rename changes all of them, refusing a name
+  that is not a valid identifier or is already declared.
 
-Diagnostics and formatting come from [`@oval-vote/oval`](https://www.npmjs.com/package/@oval-vote/oval),
+Diagnostics, formatting, and navigation come from [`@oval-vote/oval`](https://www.npmjs.com/package/@oval-vote/oval),
 the reference implementation compiled to WebAssembly, which runs inside the extension host. There is
 nothing to install besides the extension.
 
