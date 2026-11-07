@@ -1,5 +1,12 @@
 import * as vscode from "vscode";
-import { catalog, check, format, type Diagnostic, type OutlineItem } from "@oval-vote/oval";
+import {
+    catalog,
+    check,
+    format,
+    type Completion,
+    type Diagnostic,
+    type OutlineItem,
+} from "@oval-vote/oval";
 import { Analyzer, WORD, occurrences, symbolAt } from "./analysis";
 import { byteOffsetToIndex } from "./offsets";
 
@@ -91,6 +98,18 @@ export function activate(context: vscode.ExtensionContext): void {
                 );
             },
         }),
+        vscode.languages.registerCompletionItemProvider(
+            "oval",
+            {
+                provideCompletionItems(document, position) {
+                    return analyzer
+                        .completions(document, position)
+                        .map((completion) => completionItem(analyzer, document, completion));
+                },
+            },
+            "@",
+            " ",
+        ),
         vscode.languages.registerRenameProvider("oval", {
             prepareRename(document, position) {
                 const found = analyzer.symbols(document);
@@ -206,4 +225,24 @@ function documentSymbol(
     );
     symbol.children = item.children.map((child) => documentSymbol(analyzer, document, child));
     return symbol;
+}
+
+const COMPLETION_KINDS = {
+    keyword: vscode.CompletionItemKind.Keyword,
+    party: vscode.CompletionItemKind.Enum,
+    candidate: vscode.CompletionItemKind.User,
+    ballot: vscode.CompletionItemKind.Module,
+    contest: vscode.CompletionItemKind.Class,
+    measure: vscode.CompletionItemKind.Property,
+} as const;
+
+function completionItem(
+    analyzer: Analyzer,
+    document: vscode.TextDocument,
+    completion: Completion,
+): vscode.CompletionItem {
+    const item = new vscode.CompletionItem(completion.label, COMPLETION_KINDS[completion.kind]);
+    item.detail = completion.detail;
+    item.range = analyzer.range(document, completion.replace);
+    return item;
 }

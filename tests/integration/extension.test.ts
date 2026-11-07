@@ -180,6 +180,31 @@ describe("the Oval extension", () => {
         assert.ok(!text.includes("@delgado"));
     });
 
+    it("completes keywords and identifiers", async () => {
+        const document = await open(GUIDE);
+        const atKind = positionOf(document, "single", 0).translate(0, -1);
+        const kinds = await vscode.commands.executeCommand<vscode.CompletionList>(
+            "vscode.executeCompletionItemProvider",
+            document.uri,
+            atKind,
+        );
+        const labels = kinds.items.map((item) => item.label);
+        for (const kind of ["single", "multiple", "ranked", "retention"]) {
+            assert.ok(labels.includes(kind), labels.join(","));
+        }
+        const atSupport = positionOf(document, "support @delgado", 0).translate(0, 7);
+        const identifiers = await vscode.commands.executeCommand<vscode.CompletionList>(
+            "vscode.executeCompletionItemProvider",
+            document.uri,
+            atSupport,
+        );
+        const delgado = identifiers.items.find((item) => item.label === "@delgado");
+        assert.ok(delgado, identifiers.items.map((item) => item.label).join(","));
+        assert.equal(delgado.detail, "Rosa Delgado");
+        assert.equal(delgado.kind, vscode.CompletionItemKind.User);
+        assert.ok(identifiers.items.some((item) => item.label === "@webb"));
+    });
+
     it("refuses a rename to an invalid or taken name", async () => {
         const document = await open(GUIDE);
         for (const name of ["9lives", "webb"]) {

@@ -13,6 +13,9 @@ The extension provides, for `.oval` files:
   A document with syntax errors is left untouched.
 - **Outline** of the ballots, sections, contests, and measures, in the Outline view and
   breadcrumbs.
+- **Completion** of what the grammar accepts at the cursor: the keywords allowed in the current
+  block, the literal values of a field, and the identifiers a position names, so `support` offers
+  candidates and `party` offers parties, each with its name.
 - **Go to Definition, Find All References, and Rename** for identifiers. A reference goes to its
   declaration, references list every occurrence, and a rename changes all of them, refusing a name
   that is not a valid identifier or is already declared.

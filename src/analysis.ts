@@ -1,5 +1,13 @@
 import * as vscode from "vscode";
-import { outline, symbols, type OutlineItem, type Range, type Symbols } from "@oval-vote/oval";
+import {
+    completions,
+    outline,
+    symbols,
+    type Completion,
+    type OutlineItem,
+    type Range,
+    type Symbols,
+} from "@oval-vote/oval";
 import { offsets, type Offsets } from "./offsets";
 
 export const WORD = /^[A-Za-z][A-Za-z0-9_-]*$/;
@@ -28,6 +36,10 @@ export class Analyzer {
         const analysis = this.analysis(document);
         analysis.outline ??= outline(document.getText());
         return analysis.outline;
+    }
+
+    completions(document: vscode.TextDocument, position: vscode.Position): Completion[] {
+        return completions(document.getText(), this.byteOffset(document, position));
     }
 
     range(document: vscode.TextDocument, range: Range): vscode.Range {
