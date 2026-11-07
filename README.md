@@ -71,15 +71,31 @@ then an Extension Development Host starts with the extension loaded; open any `.
 
 ## Releasing
 
-A release is a tag. Set `version` in `package.json` (`npm version <version> --no-git-tag-version`
-updates the lockfile too), commit, tag the commit `v<version>`, and push the tag. The release
-workflow runs the tests, checks that the tag matches the version, packages the extension, publishes
-it to the Visual Studio Marketplace, and attaches the `.vsix` to the GitHub release.
+The version in `package.json` is the version the next release will have. Three workflows under
+Actions manage it, each run from `main` as the organization's release app:
+
+- **Set Version** takes a version and commits `Set version to <version>`, through
+  `mise run set-version`. It makes no release.
+- **Release** takes an optional version. It refuses unless the version is greater than the latest
+  release, is not tagged or on the Marketplace, and every check on the latest commit of `main` is
+  green. When a version was given it sets it, runs the tests, and commits `Release <version>`. Then
+  it creates the GitHub release, tagged `v<version>`, with an empty body. The tag runs the same
+  workflow's `publish` job, which runs the tests, checks the version against the tag, packages the
+  extension, publishes it to the Visual Studio Marketplace, and attaches the `.vsix` to the release.
+- **Unrelease** takes the latest version, reverts its release commit if there was one, and deletes
+  the GitHub release and tag. A version that reached the Marketplace is not removed; the workflow
+  says so, and the next release takes a new number.
+
+Locally, `mise run set-version <version>` writes the version without committing it, and
+`mise run version:check` confirms that `package.json` and its lockfile agree. CI runs the check.
 
 Publishing uses the Marketplace's
 [trusted publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing),
 so no token is stored anywhere. The policy on the `oval-vote` publisher names this repository and
-the `release.yml` workflow, with no environment.
+the `release.yml` workflow, with no environment. The release app's ID and private key are the
+`OVAL_RELEASE_APP_ID` and `OVAL_RELEASE_APP_PRIVATE_KEY` organization secrets; commits and tags
+made with its token trigger the CI and publish workflows, which the default `GITHUB_TOKEN` would
+not.
 
 `npm run package` builds a `.vsix` locally, which `code --install-extension` can install for a
 hands-on trial.

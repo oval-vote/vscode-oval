@@ -1,2 +1,11 @@
 [settings]
 idiomatic_version_file_enable_tools = ["node"]
+
+[tasks."set-version"]
+description = "Set the version in package.json and its lockfile"
+usage = 'arg "<version>" help="The new version, as MAJOR.MINOR.PATCH"'
+run = '.scripts/version.sh set "$usage_version"'
+
+[tasks."version:check"]
+description = "Check that the version is well-formed and agrees with the lockfile"
+run = ".scripts/version.sh check"
