@@ -205,6 +205,51 @@ describe("the Oval extension", () => {
         assert.ok(identifiers.items.some((item) => item.label === "@webb"));
     });
 
+    it("shows hover text for identifiers and keywords", async () => {
+        const document = await open(GUIDE);
+        const [identifier] = await vscode.commands.executeCommand<vscode.Hover[]>(
+            "vscode.executeHoverProvider",
+            document.uri,
+            positionOf(document, "@delgado", 2),
+        );
+        const contents = identifier.contents[0];
+        assert.ok(contents instanceof vscode.MarkdownString);
+        assert.ok(contents.value.startsWith("**candidate** `@delgado`\n\nRosa Delgado"));
+        assert.equal(document.getText(identifier.range), "@delgado");
+        const [keyword] = await vscode.commands.executeCommand<vscode.Hover[]>(
+            "vscode.executeHoverProvider",
+            document.uri,
+            positionOf(document, "contest @attorney", 0),
+        );
+        const text = keyword.contents[0];
+        assert.ok(text instanceof vscode.MarkdownString);
+        assert.ok(text.value.includes("#sec-Contest"));
+    });
+
+    it("offers a quick fix for an insecure url and applies it", async () => {
+        const document = await open(
+            GUIDE.replace(
+                "campaign @delgado\n",
+                "campaign @delgado\n        website http://delgado.example\n",
+            ),
+        );
+        await until(() => vscode.languages.getDiagnostics(document.uri).length > 0);
+        const line = document.getText().indexOf("http://");
+        const range = new vscode.Range(document.positionAt(line), document.positionAt(line + 7));
+        const actions = await vscode.commands.executeCommand<vscode.CodeAction[]>(
+            "vscode.executeCodeActionProvider",
+            document.uri,
+            range,
+        );
+        const fix = actions.find((action) => action.title === "Use https");
+        assert.ok(fix, actions.map((action) => action.title).join(","));
+        assert.equal(fix.kind?.value, vscode.CodeActionKind.QuickFix.value);
+        assert.ok(fix.edit);
+        assert.ok(await vscode.workspace.applyEdit(fix.edit));
+        assert.ok(document.getText().includes("website https://delgado.example"));
+        await until(() => vscode.languages.getDiagnostics(document.uri).length === 0);
+    });
+
     it("refuses a rename to an invalid or taken name", async () => {
         const document = await open(GUIDE);
         for (const name of ["9lives", "webb"]) {

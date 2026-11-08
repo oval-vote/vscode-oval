@@ -16,6 +16,11 @@ The extension provides, for `.oval` files:
 - **Completion** of what the grammar accepts at the cursor: the keywords allowed in the current
   block, the literal values of a field, and the identifiers a position names, so `support` offers
   candidates and `party` offers parties, each with its name.
+- **Hover** on an identifier for what it declares, its name, and how often it is used, and on a
+  keyword for a one-line description with a link to its section of the specification.
+- **Quick fixes** for diagnostics that have a mechanical repair: `http` to `https`, a misspelled
+  reference to the nearest declared name, a missing guide field, a missing recommendation, and an
+  unused declaration.
 - **Go to Definition, Find All References, and Rename** for identifiers. A reference goes to its
   declaration, references list every occurrence, and a rename changes all of them, refusing a name
   that is not a valid identifier or is already declared.

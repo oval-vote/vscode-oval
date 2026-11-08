@@ -14,9 +14,6 @@
     "Programming Languages"
   ],
   "main": "./dist/extension.js",
-  "activationEvents": [
-    "onLanguage:oval"
-  ],
   "contributes": {
     "languages": [
       {
@@ -60,7 +57,7 @@
     "vscode:prepublish": "npm run build"
   },
   "dependencies": {
-    "@oval-vote/oval": "0.1.4"
+    "@oval-vote/oval": "0.1.5"
   },
   "devDependencies": {
     "@types/mocha": "10.0.10",
