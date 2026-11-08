@@ -110,6 +110,53 @@ export function activate(context: vscode.ExtensionContext): void {
             "@",
             " ",
         ),
+        vscode.languages.registerHoverProvider("oval", {
+            provideHover(document, position) {
+                const found = analyzer.hover(document, position);
+                if (found === undefined) {
+                    return undefined;
+                }
+                return new vscode.Hover(
+                    new vscode.MarkdownString(found.contents),
+                    analyzer.range(document, found.range),
+                );
+            },
+        }),
+        vscode.languages.registerCodeActionsProvider(
+            "oval",
+            {
+                provideCodeActions(document, range, context) {
+                    return analyzer
+                        .fixes(document)
+                        .filter((fix) => analyzer.range(document, fix.range).intersection(range))
+                        .map((fix) => {
+                            const action = new vscode.CodeAction(
+                                fix.title,
+                                vscode.CodeActionKind.QuickFix,
+                            );
+                            action.edit = new vscode.WorkspaceEdit();
+                            for (const edit of fix.edits) {
+                                action.edit.replace(
+                                    document.uri,
+                                    analyzer.range(document, edit.range),
+                                    edit.text,
+                                );
+                            }
+                            action.diagnostics = context.diagnostics.filter(
+                                (diagnostic) =>
+                                    typeof diagnostic.code === "object" &&
+                                    diagnostic.code !== null &&
+                                    "value" in diagnostic.code &&
+                                    diagnostic.code.value === fix.code &&
+                                    diagnostic.range.isEqual(analyzer.range(document, fix.range)),
+                            );
+                            action.isPreferred = true;
+                            return action;
+                        });
+                },
+            },
+            { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
+        ),
         vscode.languages.registerRenameProvider("oval", {
             prepareRename(document, position) {
                 const found = analyzer.symbols(document);

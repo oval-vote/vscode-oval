@@ -1,9 +1,13 @@
 import * as vscode from "vscode";
 import {
     completions,
+    fixes,
+    hover,
     outline,
     symbols,
     type Completion,
+    type Fix,
+    type Hover,
     type OutlineItem,
     type Range,
     type Symbols,
@@ -17,6 +21,7 @@ interface Analysis {
     offsets: Offsets;
     symbols?: Symbols;
     outline?: OutlineItem[];
+    fixes?: Fix[];
 }
 
 export class Analyzer {
@@ -40,6 +45,16 @@ export class Analyzer {
 
     completions(document: vscode.TextDocument, position: vscode.Position): Completion[] {
         return completions(document.getText(), this.byteOffset(document, position));
+    }
+
+    hover(document: vscode.TextDocument, position: vscode.Position): Hover | undefined {
+        return hover(document.getText(), this.byteOffset(document, position));
+    }
+
+    fixes(document: vscode.TextDocument): Fix[] {
+        const analysis = this.analysis(document);
+        analysis.fixes ??= fixes(document.getText());
+        return analysis.fixes;
     }
 
     range(document: vscode.TextDocument, range: Range): vscode.Range {
