@@ -5,6 +5,7 @@ import {
     format,
     type Completion,
     type Diagnostic,
+    type Edit,
     type OutlineItem,
 } from "@oval-vote/oval";
 import { Analyzer, WORD, occurrences, symbolAt } from "./analysis";
@@ -135,13 +136,12 @@ export function activate(context: vscode.ExtensionContext): void {
                                 vscode.CodeActionKind.QuickFix,
                             );
                             action.edit = new vscode.WorkspaceEdit();
-                            for (const edit of fix.edits) {
-                                action.edit.replace(
-                                    document.uri,
-                                    analyzer.range(document, edit.range),
-                                    edit.text,
-                                );
-                            }
+                            action.edit.set(
+                                document.uri,
+                                fix.edits.map((edit) =>
+                                    textEdit(analyzer.range(document, edit.range), edit),
+                                ),
+                            );
                             action.diagnostics = context.diagnostics.filter(
                                 (diagnostic) =>
                                     typeof diagnostic.code === "object" &&
@@ -292,4 +292,22 @@ function completionItem(
     item.detail = completion.detail;
     item.range = analyzer.range(document, completion.replace);
     return item;
+}
+
+function textEdit(range: vscode.Range, edit: Edit): vscode.TextEdit | vscode.SnippetTextEdit {
+    if (!edit.placeholders?.length) {
+        return vscode.TextEdit.replace(range, edit.text);
+    }
+    const toIndex = byteOffsetToIndex(edit.text);
+    const snippet = new vscode.SnippetString();
+    let written = 0;
+    for (const placeholder of edit.placeholders) {
+        const start = toIndex(placeholder.start);
+        const end = toIndex(placeholder.end);
+        snippet.appendText(edit.text.slice(written, start));
+        snippet.appendPlaceholder(edit.text.slice(start, end));
+        written = end;
+    }
+    snippet.appendText(edit.text.slice(written));
+    return vscode.SnippetTextEdit.replace(range, snippet);
 }
