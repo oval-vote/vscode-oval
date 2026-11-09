@@ -6,14 +6,23 @@ on:
   pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  integration-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
       - run: npm ci
-      - run: mise run version:check
-      - run: npm run format:check
+      - if: runner.os == 'Linux'
+        run: mise run version:check
+      - if: runner.os == 'Linux'
+        run: npm run format:check
       - run: npm run build
       - run: npm test
-      - run: xvfb-run -a npm run test:integration
+      - if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:integration
+      - if: runner.os != 'Linux'
+        run: npm run test:integration

@@ -250,6 +250,33 @@ describe("the Oval extension", () => {
         await until(() => vscode.languages.getDiagnostics(document.uri).length === 0);
     });
 
+    it("adds a missing guide field with its value as a placeholder to type over", async () => {
+        const document = await open(GUIDE.replace('election "E"\n', ""));
+        await until(() => vscode.languages.getDiagnostics(document.uri).length > 0);
+        const end = document.lineAt(0).range.end;
+        const actions = await vscode.commands.executeCommand<vscode.CodeAction[]>(
+            "vscode.executeCodeActionProvider",
+            document.uri,
+            new vscode.Range(end, end),
+        );
+        const fix = actions.find((action) => action.title === "Add `election`");
+        assert.ok(fix?.edit, actions.map((action) => action.title).join(","));
+        assert.ok(await vscode.workspace.applyEdit(fix.edit));
+        assert.ok(document.getText().startsWith('oval 1\nelection ""\nguide "G"'));
+        const selection = vscode.window.activeTextEditor?.selection;
+        assert.deepEqual(
+            [selection?.active.line, selection?.active.character],
+            [1, 'election "'.length],
+        );
+        await until(() =>
+            vscode.languages
+                .getDiagnostics(document.uri)
+                .some(
+                    (diagnostic) => (diagnostic.code as { value: string }).value === "empty-string",
+                ),
+        );
+    });
+
     it("refuses a rename to an invalid or taken name", async () => {
         const document = await open(GUIDE);
         for (const name of ["9lives", "webb"]) {
