@@ -1,30 +1,26 @@
 import * as vscode from "vscode";
 import {
-    catalog,
-    check,
     format,
     type Completion,
     type Diagnostic,
     type Edit,
     type OutlineItem,
 } from "@oval-vote/oval";
-import { Analyzer, WORD, occurrences, symbolAt } from "./analysis";
-import { byteOffsetToIndex } from "./offsets";
+import { Analyzer, range } from "./analysis";
+import { WORD } from "./rename";
 
-const SPECIFICATION = "https://spec.oval.vote/draft/";
 const DEBOUNCE_MILLISECONDS = 150;
 
 export function activate(context: vscode.ExtensionContext): void {
     const collection = vscode.languages.createDiagnosticCollection("oval");
     const pending = new Map<string, NodeJS.Timeout>();
-    const links = new Map(catalog().map((entry) => [entry.identifier, entry.url]));
     const analyzer = new Analyzer();
 
     const lint = (document: vscode.TextDocument) => {
         if (document.languageId !== "oval") {
             return;
         }
-        collection.set(document.uri, diagnostics(document, links));
+        collection.set(document.uri, diagnostics(analyzer, document));
     };
 
     const schedule = (document: vscode.TextDocument) => {
@@ -42,8 +38,21 @@ export function activate(context: vscode.ExtensionContext): void {
         );
     };
 
+    const renamed = (document: vscode.TextDocument, position: vscode.Position) => {
+        const index = document.offsetAt(position);
+        const occurrences = analyzer.occurrences(document, position);
+        const here = occurrences.find(
+            (occurrence) => occurrence.range.start <= index && index <= occurrence.range.end,
+        );
+        if (here === undefined) {
+            throw new Error("Only an identifier can be renamed");
+        }
+        return { here, occurrences, name: document.getText(range(document, here.idRange)) };
+    };
+
     context.subscriptions.push(
         collection,
+        analyzer,
         vscode.workspace.onDidOpenTextDocument(lint),
         vscode.workspace.onDidChangeTextDocument((event) => schedule(event.document)),
         vscode.workspace.onDidCloseTextDocument((document) => {
@@ -59,44 +68,27 @@ export function activate(context: vscode.ExtensionContext): void {
         }),
         vscode.languages.registerDocumentSymbolProvider("oval", {
             provideDocumentSymbols(document) {
-                return analyzer
-                    .outline(document)
-                    .map((item) => documentSymbol(analyzer, document, item));
+                return analyzer.outline(document).map((item) => documentSymbol(document, item));
             },
         }),
         vscode.languages.registerDefinitionProvider("oval", {
             provideDefinition(document, position) {
-                const found = analyzer.symbols(document);
-                const at = symbolAt(found, analyzer.byteOffset(document, position));
-                if (at === undefined) {
+                const definition = analyzer.definition(document, position);
+                if (definition === null) {
                     return undefined;
                 }
-                const index =
-                    at.kind === "declaration" ? at.index : found.references[at.index].declaration;
-                const declaration = index === undefined ? undefined : found.declarations[index];
-                if (declaration === undefined) {
-                    return undefined;
-                }
-                return new vscode.Location(
-                    document.uri,
-                    analyzer.range(document, declaration.range),
-                );
+                return new vscode.Location(document.uri, range(document, definition.range));
             },
         }),
         vscode.languages.registerReferenceProvider("oval", {
             provideReferences(document, position, context) {
-                const found = analyzer.symbols(document);
-                const at = symbolAt(found, analyzer.byteOffset(document, position));
-                if (at === undefined) {
-                    return undefined;
-                }
-                return occurrences(found, at.name, context.includeDeclaration).map(
-                    (occurrence) =>
-                        new vscode.Location(
-                            document.uri,
-                            analyzer.range(document, occurrence.range),
-                        ),
-                );
+                return analyzer
+                    .occurrences(document, position)
+                    .filter((occurrence) => context.includeDeclaration || !occurrence.isDeclaration)
+                    .map(
+                        (occurrence) =>
+                            new vscode.Location(document.uri, range(document, occurrence.range)),
+                    );
             },
         }),
         vscode.languages.registerCompletionItemProvider(
@@ -105,7 +97,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 provideCompletionItems(document, position) {
                     return analyzer
                         .completions(document, position)
-                        .map((completion) => completionItem(analyzer, document, completion));
+                        .map((completion) => completionItem(document, completion));
                 },
             },
             "@",
@@ -113,87 +105,65 @@ export function activate(context: vscode.ExtensionContext): void {
         ),
         vscode.languages.registerHoverProvider("oval", {
             provideHover(document, position) {
-                const found = analyzer.hover(document, position);
-                if (found === undefined) {
+                const hover = analyzer.hover(document, position);
+                if (hover === null) {
                     return undefined;
                 }
                 return new vscode.Hover(
-                    new vscode.MarkdownString(found.contents),
-                    analyzer.range(document, found.range),
+                    new vscode.MarkdownString(hover.contents),
+                    range(document, hover.range),
                 );
             },
         }),
         vscode.languages.registerCodeActionsProvider(
             "oval",
             {
-                provideCodeActions(document, range, context) {
-                    return analyzer
-                        .fixes(document)
-                        .filter((fix) => analyzer.range(document, fix.range).intersection(range))
-                        .map((fix) => {
-                            const action = new vscode.CodeAction(
-                                fix.title,
-                                vscode.CodeActionKind.QuickFix,
-                            );
-                            action.edit = new vscode.WorkspaceEdit();
-                            action.edit.set(
-                                document.uri,
-                                fix.edits.map((edit) =>
-                                    textEdit(analyzer.range(document, edit.range), edit),
-                                ),
-                            );
-                            action.diagnostics = context.diagnostics.filter(
-                                (diagnostic) =>
-                                    typeof diagnostic.code === "object" &&
-                                    diagnostic.code !== null &&
-                                    "value" in diagnostic.code &&
-                                    diagnostic.code.value === fix.code &&
-                                    diagnostic.range.isEqual(analyzer.range(document, fix.range)),
-                            );
-                            action.isPreferred = true;
-                            return action;
-                        });
+                provideCodeActions(document, requested, context) {
+                    const found = analyzer.diagnostics(document);
+                    return analyzer.fixes(document).flatMap((fix) => {
+                        const repaired = found[fix.diagnostic];
+                        const where = range(document, repaired.range);
+                        if (where.intersection(requested) === undefined) {
+                            return [];
+                        }
+                        const action = new vscode.CodeAction(
+                            fix.title,
+                            vscode.CodeActionKind.QuickFix,
+                        );
+                        action.edit = new vscode.WorkspaceEdit();
+                        action.edit.set(document.uri, [
+                            textEdit(range(document, fix.edit.range), fix.edit),
+                        ]);
+                        action.diagnostics = context.diagnostics.filter(
+                            (diagnostic) =>
+                                diagnostic.code === repaired.code &&
+                                diagnostic.range.isEqual(where),
+                        );
+                        action.isPreferred = true;
+                        return [action];
+                    });
                 },
             },
             { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
         ),
         vscode.languages.registerRenameProvider("oval", {
             prepareRename(document, position) {
-                const found = analyzer.symbols(document);
-                const at = symbolAt(found, analyzer.byteOffset(document, position));
-                if (at === undefined) {
-                    throw new Error("Only an identifier can be renamed");
-                }
-                const occurrence =
-                    at.kind === "declaration"
-                        ? found.declarations[at.index]
-                        : found.references[at.index];
-                return {
-                    range: analyzer.range(document, occurrence.nameRange),
-                    placeholder: at.name,
-                };
+                const { here, name } = renamed(document, position);
+                return { range: range(document, here.idRange), placeholder: name };
             },
             provideRenameEdits(document, position, newName) {
-                const found = analyzer.symbols(document);
-                const at = symbolAt(found, analyzer.byteOffset(document, position));
-                if (at === undefined) {
-                    throw new Error("Only an identifier can be renamed");
-                }
+                const { occurrences, name } = renamed(document, position);
                 if (!WORD.test(newName)) {
                     throw new Error(
                         "An identifier is a letter followed by letters, digits, hyphens, and underscores",
                     );
                 }
-                if (newName !== at.name && found.declarations.some((d) => d.name === newName)) {
+                if (newName !== name && analyzer.isDeclared(document, newName)) {
                     throw new Error(`@${newName} is already declared`);
                 }
                 const edit = new vscode.WorkspaceEdit();
-                for (const occurrence of occurrences(found, at.name, true)) {
-                    edit.replace(
-                        document.uri,
-                        analyzer.range(document, occurrence.nameRange),
-                        newName,
-                    );
+                for (const occurrence of occurrences) {
+                    edit.replace(document.uri, range(document, occurrence.idRange), newName);
                 }
                 return edit;
             },
@@ -204,35 +174,26 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {}
 
-function diagnostics(
-    document: vscode.TextDocument,
-    links: Map<string, string>,
-): vscode.Diagnostic[] {
-    const text = document.getText();
-    const index = byteOffsetToIndex(text);
-    return check(text).map((found) => convert(document, index, links, found));
+function diagnostics(analyzer: Analyzer, document: vscode.TextDocument): vscode.Diagnostic[] {
+    let found: Diagnostic[];
+    try {
+        found = analyzer.diagnostics(document);
+    } catch (error) {
+        const start = new vscode.Range(0, 0, 0, 0);
+        const message = error instanceof Error ? error.message : String(error);
+        return [new vscode.Diagnostic(start, message, vscode.DiagnosticSeverity.Error)];
+    }
+    return found.map((diagnostic) => convert(document, diagnostic));
 }
 
-function convert(
-    document: vscode.TextDocument,
-    index: (byteOffset: number) => number,
-    links: Map<string, string>,
-    found: Diagnostic,
-): vscode.Diagnostic {
-    const range = new vscode.Range(
-        document.positionAt(index(found.range.start)),
-        document.positionAt(index(found.range.end)),
-    );
+function convert(document: vscode.TextDocument, found: Diagnostic): vscode.Diagnostic {
     const severity =
         found.severity === "error"
             ? vscode.DiagnosticSeverity.Error
             : vscode.DiagnosticSeverity.Warning;
-    const diagnostic = new vscode.Diagnostic(range, found.message, severity);
+    const diagnostic = new vscode.Diagnostic(range(document, found.range), found.message, severity);
     diagnostic.source = "oval";
-    diagnostic.code = {
-        value: found.code,
-        target: vscode.Uri.parse(links.get(found.code) ?? SPECIFICATION),
-    };
+    diagnostic.code = found.code;
     return diagnostic;
 }
 
@@ -258,19 +219,15 @@ const SYMBOL_KINDS = {
     measure: vscode.SymbolKind.Property,
 } as const;
 
-function documentSymbol(
-    analyzer: Analyzer,
-    document: vscode.TextDocument,
-    item: OutlineItem,
-): vscode.DocumentSymbol {
+function documentSymbol(document: vscode.TextDocument, item: OutlineItem): vscode.DocumentSymbol {
     const symbol = new vscode.DocumentSymbol(
-        item.title ?? (item.name === undefined ? item.kind : `@${item.name}`),
-        item.name === undefined ? item.kind : `${item.kind} @${item.name}`,
+        item.title ?? (item.id === null ? item.kind : `@${item.id}`),
+        item.id === null ? item.kind : `${item.kind} @${item.id}`,
         SYMBOL_KINDS[item.kind],
-        analyzer.range(document, item.range),
-        analyzer.range(document, item.selection),
+        range(document, item.range),
+        range(document, item.selection),
     );
-    symbol.children = item.children.map((child) => documentSymbol(analyzer, document, child));
+    symbol.children = item.children.map((child) => documentSymbol(document, child));
     return symbol;
 }
 
@@ -284,30 +241,23 @@ const COMPLETION_KINDS = {
 } as const;
 
 function completionItem(
-    analyzer: Analyzer,
     document: vscode.TextDocument,
     completion: Completion,
 ): vscode.CompletionItem {
     const item = new vscode.CompletionItem(completion.label, COMPLETION_KINDS[completion.kind]);
-    item.detail = completion.detail;
-    item.range = analyzer.range(document, completion.replace);
+    item.detail = completion.detail ?? undefined;
+    item.range = range(document, completion.replace);
     return item;
 }
 
-function textEdit(range: vscode.Range, edit: Edit): vscode.TextEdit | vscode.SnippetTextEdit {
-    if (!edit.placeholders?.length) {
-        return vscode.TextEdit.replace(range, edit.text);
+function textEdit(where: vscode.Range, edit: Edit): vscode.TextEdit | vscode.SnippetTextEdit {
+    const placeholder = edit.placeholder;
+    if (placeholder === null) {
+        return vscode.TextEdit.replace(where, edit.text);
     }
-    const toIndex = byteOffsetToIndex(edit.text);
-    const snippet = new vscode.SnippetString();
-    let written = 0;
-    for (const placeholder of edit.placeholders) {
-        const start = toIndex(placeholder.start);
-        const end = toIndex(placeholder.end);
-        snippet.appendText(edit.text.slice(written, start));
-        snippet.appendPlaceholder(edit.text.slice(start, end));
-        written = end;
-    }
-    snippet.appendText(edit.text.slice(written));
-    return vscode.SnippetTextEdit.replace(range, snippet);
+    const snippet = new vscode.SnippetString()
+        .appendText(edit.text.slice(0, placeholder.start))
+        .appendPlaceholder(edit.text.slice(placeholder.start, placeholder.end))
+        .appendText(edit.text.slice(placeholder.end));
+    return vscode.SnippetTextEdit.replace(where, snippet);
 }

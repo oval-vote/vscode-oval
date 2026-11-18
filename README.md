@@ -7,8 +7,7 @@ The extension provides, for `.oval` files:
 - **Syntax highlighting** from a TextMate grammar that follows the specification's lexical rules.
 - **Diagnostics** from the reference implementation: every lexical error, syntax error, validation
   error, and warning the specification defines, shown as you type. Each diagnostic's code is the
-  identifier of its entry in the specification, and links to that entry on
-  [spec.oval.vote](https://spec.oval.vote).
+  identifier the specification gives the problem, such as `invalid-date`.
 - **Formatting** through the reference formatter, so Format Document and format-on-save work.
   A document with syntax errors is left untouched.
 - **Outline** of the ballots, sections, contests, and measures, in the Outline view and
@@ -16,8 +15,8 @@ The extension provides, for `.oval` files:
 - **Completion** of what the grammar accepts at the cursor: the keywords allowed in the current
   block, the literal values of a field, and the identifiers a position names, so `support` offers
   candidates and `party` offers parties, each with its name.
-- **Hover** on an identifier for what it declares, its name, and how often it is used, and on a
-  keyword for a one-line description with a link to its section of the specification.
+- **Hover** on an identifier for what it declares and its name, with a candidate's party, and on a
+  keyword for a one-sentence description of what it introduces.
 - **Quick fixes** for diagnostics that have a mechanical repair: `http` to `https`, a misspelled
   reference to the nearest declared name, a missing guide field, a missing recommendation, and an
   unused declaration.
@@ -33,23 +32,23 @@ nothing to install besides the extension.
 
 The grammar follows the lexical rules of the [specification](https://github.com/oval-vote/oval-spec).
 
-| Construct                                                                                     | Scope                                                                                                                      |
-| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `oval` and its major version                                                                  | `keyword.other.version.oval`, `constant.numeric.integer.oval`                                                              |
-| Entity keywords (`party`, `candidate`, `ballot`, `section`, `contest`, `campaign`, `measure`) | `storage.type.oval`                                                                                                        |
-| Field keywords (`guide`, `election`, `note`, `website`, ...)                                  | `support.type.property-name.oval`                                                                                          |
-| Voting methods (`single`, `multiple`, `ranked`, `retention`, `max`)                           | `keyword.other.method.oval`                                                                                                |
-| Flags (`incumbent`, `withdrawn`)                                                              | `storage.modifier.oval`                                                                                                    |
-| `recommend`, `support`, `oppose`                                                              | `keyword.control.oval`                                                                                                     |
-| `yes`, `no`, `no-position`, `none`                                                            | `constant.language.oval`                                                                                                   |
-| `@id` where it is declared                                                                    | `entity.name.type.declaration.oval`                                                                                        |
-| `@id` where it is referenced                                                                  | `variable.other.reference.oval`                                                                                            |
-| Strings and their two escapes                                                                 | `string.quoted.double.oval`, `constant.character.escape.oval`                                                              |
-| Dates and integers                                                                            | `constant.numeric.date.oval`, `constant.numeric.integer.oval`                                                              |
-| URLs                                                                                          | `markup.underline.link.oval`                                                                                               |
-| Comments                                                                                      | `comment.line.number-sign.oval`                                                                                            |
-| Markdown bodies                                                                               | `markup.other.markdown.oval`, with `markup.heading`, `markup.bold`, `markup.italic`, `markup.inline.raw`, and links inside |
-| Words where no keyword is expected, stray characters, malformed numbers, bad escapes, tabs    | `invalid.illegal.*.oval`                                                                                                   |
+| Construct                                                                                                      | Scope                                                                                                                      |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `oval` and its major version                                                                                   | `keyword.other.version.oval`, `constant.numeric.integer.oval`                                                              |
+| Entity keywords (`party`, `candidate`, `ballot`, `section`, `contest`, `campaign`, `measure`)                  | `storage.type.oval`                                                                                                        |
+| Field keywords (`guide`, `election`, `note`, `website`, ...)                                                   | `support.type.property-name.oval`                                                                                          |
+| Voting methods and their modifiers (`single`, `multiple`, `ranked`, `retention`, `seats`, `max`, `min`, `all`) | `keyword.other.method.oval`                                                                                                |
+| Modifiers and flags (`required`, `optional`, `extensible`, `exhaustive`, `incumbent`, `withdrawn`)             | `storage.modifier.oval`                                                                                                    |
+| `recommend`, `support`, `oppose`                                                                               | `keyword.control.oval`                                                                                                     |
+| `yes`, `no`, `no-position`, `abstain`, `write-in`, `none`                                                      | `constant.language.oval`                                                                                                   |
+| `@id` where it is declared                                                                                     | `entity.name.type.declaration.oval`                                                                                        |
+| `@id` where it is referenced                                                                                   | `variable.other.reference.oval`                                                                                            |
+| Strings and their two escapes                                                                                  | `string.quoted.double.oval`, `constant.character.escape.oval`                                                              |
+| Dates and integers                                                                                             | `constant.numeric.date.oval`, `constant.numeric.integer.oval`                                                              |
+| URLs                                                                                                           | `markup.underline.link.oval`                                                                                               |
+| Comments                                                                                                       | `comment.line.number-sign.oval`                                                                                            |
+| Markdown bodies                                                                                                | `markup.other.markdown.oval`, with `markup.heading`, `markup.bold`, `markup.italic`, `markup.inline.raw`, and links inside |
+| Words where no keyword is expected, stray characters, malformed numbers, bad escapes, tabs                     | `invalid.illegal.*.oval`                                                                                                   |
 
 Markdown bodies are not handed to the Markdown grammar. Bodies are indented, and the Markdown
 grammar would read every indented line as a code block, so the extension recognizes a small set of
@@ -69,10 +68,10 @@ npm run test:integration   # runs the extension in a downloaded Visual Studio Co
 
 The grammar tests are [vscode-tmgrammar-test](https://github.com/PanAeon/vscode-tmgrammar-test)
 files under `tests/unit`. Each `.oval` file there is highlighted and the `#` assertion lines
-beneath each line name the scopes the tokens above must have. The unit tests cover the pure
-helpers, such as the conversion from the byte offsets the implementation reports to editor
-positions. The integration tests under `tests/integration` open documents in a real editor and
-check diagnostics and formatting end to end.
+beneath each line name the scopes the tokens above must have. The unit tests cover the code that
+runs without an editor, such as how a rename finds out whether a name is already declared, against
+the real `@oval-vote/oval`. The integration tests under `tests/integration` open documents in a
+real editor and check every feature end to end.
 
 To try the extension, open this folder in Visual Studio Code and press F5. The build runs first,
 then an Extension Development Host starts with the extension loaded; open any `.oval` file in it.
@@ -111,5 +110,4 @@ hands-on trial.
 ## Versioning
 
 The extension has its own version. The language it understands is the major version that
-`@oval-vote/oval` reports through `languageMajor()`, and the diagnostics link to the edition of the
-specification that package was built against.
+`@oval-vote/oval` reports through `languageMajor()`.
