@@ -34,13 +34,7 @@ describe("the Oval extension", () => {
         );
         await until(() => vscode.languages.getDiagnostics(document.uri).length > 0);
         const diagnostics = vscode.languages.getDiagnostics(document.uri);
-        const date = diagnostics.find(
-            (d) =>
-                typeof d.code === "object" &&
-                d.code !== null &&
-                "value" in d.code &&
-                d.code.value === "invalid-date",
-        );
+        const date = diagnostics.find((d) => d.code === "invalid-date");
         assert.ok(date, JSON.stringify(diagnostics));
         assert.equal(date.severity, vscode.DiagnosticSeverity.Error);
         assert.equal(date.source, "oval");
@@ -52,12 +46,6 @@ describe("the Oval extension", () => {
                 date.range.end.character,
             ],
             [3, 5, 3, 15],
-        );
-        assert.equal(
-            typeof date.code === "object" && date.code !== null && "target" in date.code
-                ? date.code.target.toString()
-                : undefined,
-            "https://spec.oval.vote/draft/#sec-Invalid-Date",
         );
     });
 
@@ -214,7 +202,7 @@ describe("the Oval extension", () => {
         );
         const contents = identifier.contents[0];
         assert.ok(contents instanceof vscode.MarkdownString);
-        assert.ok(contents.value.startsWith("**candidate** `@delgado`\n\nRosa Delgado"));
+        assert.equal(contents.value, "candidate **Rosa Delgado**, Democratic");
         assert.equal(document.getText(identifier.range), "@delgado");
         const [keyword] = await vscode.commands.executeCommand<vscode.Hover[]>(
             "vscode.executeHoverProvider",
@@ -223,7 +211,8 @@ describe("the Oval extension", () => {
         );
         const text = keyword.contents[0];
         assert.ok(text instanceof vscode.MarkdownString);
-        assert.ok(text.value.includes("#sec-Contest"));
+        assert.equal(text.value, "`contest` declares a race between campaigns for an office.");
+        assert.equal(document.getText(keyword.range), "contest");
     });
 
     it("offers a quick fix for an insecure url and applies it", async () => {
@@ -241,7 +230,7 @@ describe("the Oval extension", () => {
             document.uri,
             range,
         );
-        const fix = actions.find((action) => action.title === "Use https");
+        const fix = actions.find((action) => action.title === "Use `https`");
         assert.ok(fix, actions.map((action) => action.title).join(","));
         assert.equal(fix.kind?.value, vscode.CodeActionKind.QuickFix.value);
         assert.ok(fix.edit);
@@ -262,18 +251,16 @@ describe("the Oval extension", () => {
         const fix = actions.find((action) => action.title === "Add `election`");
         assert.ok(fix?.edit, actions.map((action) => action.title).join(","));
         assert.ok(await vscode.workspace.applyEdit(fix.edit));
-        assert.ok(document.getText().startsWith('oval 1\nelection ""\nguide "G"'));
+        assert.ok(document.getText().startsWith('oval 1\nguide "G"\nelection ""\ndate'));
         const selection = vscode.window.activeTextEditor?.selection;
         assert.deepEqual(
             [selection?.active.line, selection?.active.character],
-            [1, 'election "'.length],
+            [2, 'election "'.length],
         );
         await until(() =>
             vscode.languages
                 .getDiagnostics(document.uri)
-                .some(
-                    (diagnostic) => (diagnostic.code as { value: string }).value === "empty-string",
-                ),
+                .some((diagnostic) => diagnostic.code === "empty-string"),
         );
     });
 
