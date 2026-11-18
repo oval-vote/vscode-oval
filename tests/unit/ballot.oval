@@ -71,3 +71,26 @@ ballot @franklin "State of Franklin"
   measure @prop2 "Proposition 2"
     recommend no
 #             ^^ constant.language.oval
+  measure @prop3 "Proposition 3"
+    recommend abstain
+#             ^^^^^^^ constant.language.oval
+optional exhaustive ballot @city "City"
+# <-------- storage.modifier.oval
+#        ^^^^^^^^^^ storage.modifier.oval
+#                   ^^^^^^ storage.type.oval
+  required extensible section "Offices"
+# ^^^^^^^^ storage.modifier.oval
+#          ^^^^^^^^^^ storage.modifier.oval
+    contest @council "Council" multiple 3 seats 2 min 1
+#                              ^^^^^^^^ keyword.other.method.oval
+#                                         ^^^^^ keyword.other.method.oval
+#                                               ^ constant.numeric.integer.oval
+#                                                 ^^^ keyword.other.method.oval
+      recommend
+        support @a write-in
+#                  ^^^^^^^^ constant.language.oval
+        oppose write-in
+#              ^^^^^^^^ constant.language.oval
+    optional contest @board "Board" ranked max 6 all
+#   ^^^^^^^^ storage.modifier.oval
+#                                                ^^^ keyword.other.method.oval

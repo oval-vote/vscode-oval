@@ -217,11 +217,11 @@
           "name": "support.type.property-name.oval"
         },
         {
-          "match": "(?<![A-Za-z0-9_-])(?:single|multiple|ranked|retention|max)(?![A-Za-z0-9_-])",
+          "match": "(?<![A-Za-z0-9_-])(?:single|multiple|ranked|retention|seats|max|min|all)(?![A-Za-z0-9_-])",
           "name": "keyword.other.method.oval"
         },
         {
-          "match": "(?<![A-Za-z0-9_-])(?:incumbent|withdrawn)(?![A-Za-z0-9_-])",
+          "match": "(?<![A-Za-z0-9_-])(?:required|optional|extensible|exhaustive|incumbent|withdrawn)(?![A-Za-z0-9_-])",
           "name": "storage.modifier.oval"
         },
         {
@@ -233,7 +233,7 @@
           "name": "keyword.control.oval"
         },
         {
-          "match": "(?<![A-Za-z0-9_-])(?:yes|no-position|no|none)(?![A-Za-z0-9_-])",
+          "match": "(?<![A-Za-z0-9_-])(?:yes|no-position|no|abstain|write-in|none)(?![A-Za-z0-9_-])",
           "name": "constant.language.oval"
         }
       ]
